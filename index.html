@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日文五十音互動學習與寶可夢抽卡系統</title>
+    <title>日文五十音智能學習與寶可夢抽卡系統</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -28,11 +28,11 @@
     <!-- 頂部導航欄 -->
     <header class="bg-indigo-600 text-white shadow-md py-4 px-6 flex flex-wrap justify-between items-center">
         <h1 class="text-2xl font-bold tracking-wide flex items-center gap-2">
-            🎌 五十音智能手寫與寶可夢圖鑑
+            🎌 五十音手寫辨識與寶可夢圖鑑
         </h1>
         <div class="flex gap-2 mt-2 sm:mt-0">
-            <button onclick="switchTab('learn')" id="btn-learn" class="px-4 py-2 bg-indigo-700 rounded-lg font-medium transition shadow hover:bg-indigo-800">📖 學習與手寫模式</button>
-            <button onclick="switchTab('practice')" id="btn-practice" class="px-4 py-2 bg-indigo-500 rounded-lg font-medium transition shadow hover:bg-indigo-600">🎮 四選一練習</button>
+            <button onclick="switchTab('learn')" id="btn-learn" class="px-4 py-2 bg-indigo-700 rounded-lg font-medium transition shadow hover:bg-indigo-800">📖 學習與手寫檢測</button>
+            <button onclick="switchTab('practice')" id="btn-practice" class="px-4 py-2 bg-indigo-500 rounded-lg font-medium transition shadow hover:bg-indigo-600">🎮 四選一練習 (5題1抽)</button>
             <button onclick="switchTab('dex')" id="btn-dex" class="px-4 py-2 bg-indigo-500 rounded-lg font-medium transition shadow hover:bg-indigo-600">🏆 寶可夢圖庫 (<span id="dex-count">0</span>/20)</button>
         </div>
     </header>
@@ -43,8 +43,8 @@
         <!-- ================= 學習與手寫模式 ================= -->
         <section id="tab-learn" class="space-y-6">
             <div class="bg-white rounded-2xl shadow-md p-6">
-                <h2 class="text-xl font-bold text-indigo-700 mb-2">📖 五十音清單與手寫辨識</h2>
-                <p class="text-sm text-slate-500 mb-4">點擊行按鈕切換假名，點擊「去手寫練習」可在大型正方形畫板中書寫練習！</p>
+                <h2 class="text-xl font-bold text-indigo-700 mb-2">📖 五十音清單與 AI 手寫檢測</h2>
+                <p class="text-sm text-slate-500 mb-4">點擊行按鈕切換假名。每個假名分別設有「平假名」與「片假名」獨立手寫 API 檢測按鈕（註：手寫正確無抽獎獎勵）！</p>
                 
                 <!-- 行選擇器 -->
                 <div class="flex flex-wrap gap-2 mb-6" id="row-buttons"></div>
@@ -59,9 +59,10 @@
             <div class="bg-white rounded-2xl shadow-md p-6 max-w-2xl mx-auto text-center">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold text-indigo-700">🎮 實戰四選一挑戰</h2>
-                    <div class="flex gap-3 text-sm">
+                    <div class="flex flex-col sm:flex-row gap-2 text-sm text-right">
                         <span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-semibold">分數: <span id="score">0</span></span>
-                        <span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-full font-semibold">剩餘抽卡機會: <span id="draw-tokens">0</span> 張</span>
+                        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-semibold">答對進度: <span id="streak-count">0</span> / 5 題</span>
+                        <span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-full font-semibold">抽卡機會: <span id="draw-tokens">0</span> 張</span>
                     </div>
                 </div>
 
@@ -95,14 +96,14 @@
                     <h2 class="text-xl font-bold text-indigo-700">🏆 我的寶可夢官方立繪珍藏圖庫</h2>
                     <div class="text-sm font-medium text-slate-600">已收集：<span id="dex-collected-count">0</span> / 20</div>
                 </div>
-                <p class="text-sm text-slate-500 mb-6">透過練習模式或手寫練習答對題目累積抽獎機會，解鎖 20 款官方高品質寶可夢立繪卡牌！</p>
+                <p class="text-sm text-slate-500 mb-6">在練習模式每**連續答對 5 題**即可獲得 1 次抽獎機會！稀有卡牌（UR / SSR）機率較低，快來解鎖 20 款官方立繪！</p>
 
                 <!-- 抽獎區 -->
                 <div class="bg-gradient-to-r from-amber-100 to-orange-100 p-6 rounded-xl text-center mb-8 shadow-inner">
-                    <h3 class="text-lg font-bold text-amber-900 mb-2">✨ 傳說寶可夢抽卡機</h3>
-                    <p class="text-xs text-amber-700 mb-4">每次答對或手寫成功可獲得 1 次抽獎機會！</p>
+                    <h3 class="text-lg font-bold text-amber-900 mb-2">✨ 傳說寶可夢抽卡機 (稀有度機率機制)</h3>
+                    <p class="text-xs text-amber-700 mb-4">目前剩餘抽卡機會：<span id="token-display" class="font-bold text-rose-600 text-sm">0</span> 張 (練習模式答對 5 題賺取 1 張)</p>
                     <button onclick="drawPokemon()" id="draw-btn" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold px-8 py-3 rounded-xl shadow-lg hover:from-amber-600 hover:to-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        🎲 立即抽卡 (剩餘 <span id="token-display">0</span> 張)
+                        🎲 立即抽卡
                     </button>
                 </div>
 
@@ -122,8 +123,8 @@
     <!-- 手寫練習彈窗 Modal -->
     <div id="handwriting-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center relative">
-            <h3 class="text-lg font-bold text-indigo-700 mb-1">✍️ 手寫辨識練習</h3>
-            <p class="text-xs text-slate-500 mb-4">請在下方大正方形框內寫出目標假名：<span id="modal-target-kana" class="text-2xl font-black text-rose-600 mx-1">あ</span></p>
+            <h3 class="text-lg font-bold text-indigo-700 mb-1" id="modal-title">✍️ 手寫辨識檢測</h3>
+            <p class="text-xs text-slate-500 mb-4">請在下方大正方形框內書寫：<span id="modal-target-kana" class="text-2xl font-black text-rose-600 mx-1">あ</span></p>
             
             <!-- 大正方形手寫畫板 -->
             <div class="flex justify-center mb-4">
@@ -155,6 +156,7 @@
             { h: 'わ', k: 'ワ', r: 'wa', row: 'わ行' }, { h: 'を', k: 'ヲ', r: 'wo', row: 'わ行' }, { h: 'ん', k: 'ン', r: 'n', row: 'わ行' }
         ];
 
+        // 20 隻寶可夢清單與稀有度設定
         const pokemonList = [
             { id: 25, name: '皮卡丘 (Pikachu)', rarity: 'SSR' },
             { id: 4, name: '小火龍 (Charmander)', rarity: 'R' },
@@ -179,8 +181,9 @@
         ];
 
         let score = 0;
+        let streakCount = 0;
         let drawTokens = 0;
-        let collectedPokemons = JSON.parse(localStorage.getItem('collected_pokemons_20')) || [];
+        let collectedPokemons = JSON.parse(localStorage.getItem('collected_pokemons_v3')) || [];
         let currentWritingTarget = '';
 
         let canvas, ctx;
@@ -245,7 +248,11 @@
                         <button onclick="playAudio('${item.h}')" class="flex-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-xs py-1.5 rounded font-medium transition">🔊 讀音</button>
                     </div>
 
-                    <button onclick="openHandwritingModal('${item.h}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-2 rounded-lg font-medium transition shadow">✍️ 去手寫練習 (${item.h})</button>
+                    <!-- 分開平假名與片假名兩個獨立手寫檢測按鈕 -->
+                    <div class="flex flex-col gap-1.5 w-full">
+                        <button onclick="openHandwritingModal('${item.h}', 'hiragana')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1.5 rounded-lg font-medium transition shadow">✍️ 平假名手寫檢測 (${item.h})</button>
+                        <button onclick="openHandwritingModal('${item.k}', 'katakana')" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white text-xs py-1.5 rounded-lg font-medium transition shadow">✍️ 片假名手寫檢測 (${item.k})</button>
+                    </div>
                 `;
                 container.appendChild(card);
             });
@@ -262,9 +269,10 @@
             }
         }
 
-        function openHandwritingModal(kana) {
+        function openHandwritingModal(kana, type) {
             currentWritingTarget = kana;
             document.getElementById('modal-target-kana').innerText = kana;
+            document.getElementById('modal-title').innerText = type === 'hiragana' ? '✍️ 平假名手寫辨識檢測' : '✍️ 片假名手寫辨識檢測';
             document.getElementById('handwriting-status').innerText = '請在大正方形內書寫';
             document.getElementById('handwriting-status').className = 'text-sm font-semibold text-slate-600 mb-4 h-6';
             clearCanvas();
@@ -342,6 +350,7 @@
             currentStroke = [];
         }
 
+        // 嚴格使用 Web Handwriting API 檢測，答對沒有獎勵
         async function recognizeHandwriting() {
             const statusEl = document.getElementById('handwriting-status');
             
@@ -354,7 +363,7 @@
             try {
                 if ('navigator' in window && typeof navigator.createHandwritingRecognizer === 'function') {
                     statusEl.className = "text-sm font-semibold text-indigo-600 mb-4 h-6";
-                    statusEl.innerText = "正在辨識中...";
+                    statusEl.innerText = "正在以 AI 檢測筆跡...";
                     
                     const recognizer = await navigator.createHandwritingRecognizer({ languages: ['ja'] });
                     const drawingObj = {
@@ -371,30 +380,24 @@
                     if (results && results.length > 0) {
                         const topMatch = results[0].text;
                         if (topMatch.includes(currentWritingTarget)) {
-                            grantReward(statusEl, `🎉 太棒了！辨識結果為「${topMatch}」，完全正確！獎勵 +1 抽卡機會！`);
+                            statusEl.className = "text-sm font-semibold text-emerald-600 mb-4 h-6";
+                            statusEl.innerText = `🎉 檢測通過！辨識結果為「${topMatch}」，書寫正確！（手寫練習無抽獎獎勵）`;
                             return;
                         } else {
                             statusEl.className = "text-sm font-semibold text-rose-500 mb-4 h-6";
-                            statusEl.innerText = `❌ 辨識為「${topMatch}」，請再試一次！`;
+                            statusEl.innerText = `❌ 辨識結果為「${topMatch}」，與目標不符，請重新書寫！`;
                             return;
                         }
                     }
+                } else {
+                    statusEl.className = "text-sm font-semibold text-amber-600 mb-4 h-6";
+                    statusEl.innerText = "您的瀏覽器未啟用 Web Handwriting API 支援。";
                 }
             } catch (err) {
-                console.warn('Handwriting API not fully supported or active, using fallback:', err);
+                console.error(err);
+                statusEl.className = "text-sm font-semibold text-rose-500 mb-4 h-6";
+                statusEl.innerText = "API 檢測發生錯誤，請重新書寫。";
             }
-
-            // 支援失敗或瀏覽器不支援時的自動通過獎勵機制
-            grantReward(statusEl, `🎉 手寫練習完成！獎勵 +1 抽卡機會！`);
-        }
-
-        function grantReward(statusEl, msg) {
-            statusEl.className = "text-sm font-semibold text-emerald-600 mb-4 h-6";
-            statusEl.innerText = msg;
-            drawTokens++;
-            document.getElementById('draw-tokens').innerText = drawTokens;
-            document.getElementById('token-display').innerText = drawTokens;
-            document.getElementById('draw-btn').disabled = false;
         }
 
         function nextQuestion() {
@@ -425,27 +428,41 @@
             });
         }
 
+        // 練習模式：需答對 5 題才有 1 次抽獎機會
         function checkAnswer(selected, correct) {
             const feedback = document.getElementById('feedback-msg');
             if (selected === correct) {
-                feedback.className = "text-lg font-bold h-8 text-emerald-600";
-                feedback.innerText = "🎉 答對了！獲得 1 張抽獎機會！";
                 score += 10;
-                drawTokens += 1;
+                streakCount++;
                 document.getElementById('score').innerText = score;
-                document.getElementById('draw-tokens').innerText = drawTokens;
-                document.getElementById('token-display').innerText = drawTokens;
-                document.getElementById('draw-btn').disabled = false;
+                document.getElementById('streak-count').innerText = streakCount;
+
+                if (streakCount >= 5) {
+                    streakCount = 0;
+                    drawTokens++;
+                    document.getElementById('streak-count').innerText = streakCount;
+                    document.getElementById('draw-tokens').innerText = drawTokens;
+                    document.getElementById('token-display').innerText = drawTokens;
+                    document.getElementById('draw-btn').disabled = false;
+                    feedback.className = "text-lg font-bold h-8 text-indigo-600";
+                    feedback.innerText = "🌟 太厲害了！已累計答對 5 題，獲得 +1 張抽獎機會！";
+                } else {
+                    feedback.className = "text-lg font-bold h-8 text-emerald-600";
+                    feedback.innerText = `🎉 答對！還差 ${5 - streakCount} 題獲得抽獎機會`;
+                }
                 setTimeout(nextQuestion, 1500);
             } else {
+                streakCount = 0; // 答錯重置連續次數
+                document.getElementById('streak-count').innerText = streakCount;
                 feedback.className = "text-lg font-bold h-8 text-rose-500";
-                feedback.innerText = `❌ 答錯了！正確答案是: ${correct}`;
+                feedback.innerText = `❌ 答錯了！連續進度已重置，正確答案是: ${correct}`;
             }
         }
 
+        // 按照稀有度權重加權隨機抽卡 (UR, SSR 等不易抽中)
         function drawPokemon() {
             if (drawTokens <= 0) {
-                alert('抽卡機會不足！請先到練習模式答對題目或完成手寫練習獲取機會。');
+                alert('抽卡機會不足！請前往練習模式連續答對 5 題來獲取抽獎機會。');
                 return;
             }
 
@@ -453,12 +470,26 @@
             document.getElementById('draw-tokens').innerText = drawTokens;
             document.getElementById('token-display').innerText = drawTokens;
 
-            const randomIndex = Math.floor(Math.random() * pokemonList.length);
-            const drawnPokemon = pokemonList[randomIndex];
+            // 定義稀有度權重 (數值越低越難抽中)
+            // R: 60%, SR: 25%, SSR: 11%, UR: 4%
+            const weightedList = [];
+            pokemonList.forEach(p => {
+                let weight = 1;
+                if (p.rarity === 'R') weight = 60;
+                else if (p.rarity === 'SR') weight = 25;
+                else if (p.rarity === 'SSR') weight = 11;
+                else if (p.rarity === 'UR') weight = 4;
+
+                for (let i = 0; i < weight; i++) {
+                    weightedList.push(p);
+                }
+            });
+
+            const drawnPokemon = weightedList[Math.floor(Math.random() * weightedList.length)];
 
             if (!collectedPokemons.some(p => p.id === drawnPokemon.id)) {
                 collectedPokemons.push(drawnPokemon);
-                localStorage.setItem('collected_pokemons_20', JSON.stringify(collectedPokemons));
+                localStorage.setItem('collected_pokemons_v3', JSON.stringify(collectedPokemons));
                 updateDexUI();
             }
 
@@ -468,10 +499,15 @@
             
             const artworkUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${drawnPokemon.id}.png`;
 
+            let rarityColor = 'bg-slate-200 text-slate-700';
+            if (drawnPokemon.rarity === 'UR') rarityColor = 'bg-purple-200 text-purple-800 border border-purple-400';
+            else if (drawnPokemon.rarity === 'SSR') rarityColor = 'bg-amber-200 text-amber-800 border border-amber-400';
+            else if (drawnPokemon.rarity === 'SR') rarityColor = 'bg-blue-200 text-blue-800';
+
             showcase.innerHTML = `
-                <div class="pokemon-card bg-amber-100 p-4 rounded-2xl shadow-xl shining-border inline-block text-center w-52">
+                <div class="pokemon-card bg-amber-50 p-4 rounded-2xl shadow-xl shining-border inline-block text-center w-52">
                     <img src="${artworkUrl}" alt="${drawnPokemon.name}" class="w-36 h-36 mx-auto object-contain mb-2 drop-shadow-md" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${drawnPokemon.id}.png'">
-                    <div class="text-xs font-bold bg-white/80 rounded px-2 py-0.5 inline-block mb-1 text-slate-700">${drawnPokemon.rarity}</div>
+                    <div class="text-xs font-bold ${rarityColor} rounded px-2 py-0.5 inline-block mb-1">${drawnPokemon.rarity}</div>
                     <div class="font-bold text-slate-900 text-sm truncate">${drawnPokemon.name}</div>
                 </div>
             `;
@@ -497,7 +533,7 @@
                     card.className = "bg-slate-200 border-2 border-dashed border-slate-300 p-3 rounded-xl text-center flex flex-col items-center justify-center opacity-70 min-h-[140px]";
                     card.innerHTML = `
                         <div class="text-2xl mb-1 text-slate-400">❓</div>
-                        <span class="text-xs font-semibold text-slate-500">No.${p.id} 未解鎖</span>
+                        <span class="text-xs font-semibold text-slate-500">No.${p.id} (${p.rarity})</span>
                     `;
                 }
                 grid.appendChild(card);
