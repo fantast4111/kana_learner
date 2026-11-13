@@ -28,10 +28,10 @@
     <!-- 頂部導航欄 -->
     <header class="bg-indigo-600 text-white shadow-md py-4 px-6 flex flex-wrap justify-between items-center">
         <h1 class="text-2xl font-bold tracking-wide flex items-center gap-2">
-            🎌 五十音手寫辨識與寶可夢圖鑑
+            🎌 五十音手寫練習與寶可夢圖鑑
         </h1>
         <div class="flex gap-2 mt-2 sm:mt-0">
-            <button onclick="switchTab('learn')" id="btn-learn" class="px-4 py-2 bg-indigo-700 rounded-lg font-medium transition shadow hover:bg-indigo-800">📖 學習與手寫檢測</button>
+            <button onclick="switchTab('learn')" id="btn-learn" class="px-4 py-2 bg-indigo-700 rounded-lg font-medium transition shadow hover:bg-indigo-800">📖 學習與手寫練習</button>
             <button onclick="switchTab('practice')" id="btn-practice" class="px-4 py-2 bg-indigo-500 rounded-lg font-medium transition shadow hover:bg-indigo-600">🎮 四選一練習 (5題1抽)</button>
             <button onclick="switchTab('dex')" id="btn-dex" class="px-4 py-2 bg-indigo-500 rounded-lg font-medium transition shadow hover:bg-indigo-600">🏆 寶可夢圖庫 (<span id="dex-count">0</span>/20)</button>
         </div>
@@ -43,8 +43,8 @@
         <!-- ================= 學習與手寫模式 ================= -->
         <section id="tab-learn" class="space-y-6">
             <div class="bg-white rounded-2xl shadow-md p-6">
-                <h2 class="text-xl font-bold text-indigo-700 mb-2">📖 五十音清單與 AI 手寫檢測</h2>
-                <p class="text-sm text-slate-500 mb-4">點擊行按鈕切換假名。每個假名分別設有「平假名」與「片假名」獨立手寫 API 檢測按鈕（註：手寫正確無抽獎獎勵）！</p>
+                <h2 class="text-xl font-bold text-indigo-700 mb-2">📖 五十音清單與手寫臨摹練習</h2>
+                <p class="text-sm text-slate-500 mb-4">點擊行按鈕切換假名。每個假名分別設有「平假名」與「片假名」獨立大正方形手寫練習畫板（手寫練習純屬書寫臨摹，無抽獎獎勵）！</p>
                 
                 <!-- 行選擇器 -->
                 <div class="flex flex-wrap gap-2 mb-6" id="row-buttons"></div>
@@ -123,19 +123,19 @@
     <!-- 手寫練習彈窗 Modal -->
     <div id="handwriting-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl text-center relative">
-            <h3 class="text-lg font-bold text-indigo-700 mb-1" id="modal-title">✍️ 手寫辨識檢測</h3>
-            <p class="text-xs text-slate-500 mb-4">請在下方大正方形框內書寫：<span id="modal-target-kana" class="text-2xl font-black text-rose-600 mx-1">あ</span></p>
+            <h3 class="text-lg font-bold text-indigo-700 mb-1" id="modal-title">✍️ 手寫臨摹練習</h3>
+            <p class="text-xs text-slate-500 mb-4">請對照臨摹目標假名：<span id="modal-target-kana" class="text-2xl font-black text-rose-600 mx-1">あ</span></p>
             
             <!-- 大正方形手寫畫板 -->
             <div class="flex justify-center mb-4">
                 <canvas id="handwriting-canvas" width="280" height="280" class="border-4 border-indigo-200 bg-slate-50 rounded-xl cursor-crosshair shadow-inner"></canvas>
             </div>
 
-            <div id="handwriting-status" class="text-sm font-semibold text-slate-600 mb-4 h-6">請書寫中...</div>
+            <div id="handwriting-status" class="text-sm font-semibold text-slate-600 mb-4 h-6">請在方格內隨意書寫練習筆順</div>
 
             <div class="flex gap-2">
                 <button onclick="clearCanvas()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-xl font-medium transition">清空重寫</button>
-                <button onclick="recognizeHandwriting()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-xl font-medium transition">確認核對</button>
+                <button onclick="finishHandwriting()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-xl font-medium transition">完成練習</button>
                 <button onclick="closeHandwritingModal()" class="px-4 bg-rose-100 hover:bg-rose-200 text-rose-700 py-2 rounded-xl font-medium transition">關閉</button>
             </div>
         </div>
@@ -183,13 +183,10 @@
         let score = 0;
         let streakCount = 0;
         let drawTokens = 0;
-        let collectedPokemons = JSON.parse(localStorage.getItem('collected_pokemons_v3')) || [];
-        let currentWritingTarget = '';
+        let collectedPokemons = JSON.parse(localStorage.getItem('collected_pokemons_v4')) || [];
 
         let canvas, ctx;
         let drawing = false;
-        let currentStroke = [];
-        let allStrokes = [];
 
         window.onload = function() {
             canvas = document.getElementById('handwriting-canvas');
@@ -248,10 +245,10 @@
                         <button onclick="playAudio('${item.h}')" class="flex-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-xs py-1.5 rounded font-medium transition">🔊 讀音</button>
                     </div>
 
-                    <!-- 分開平假名與片假名兩個獨立手寫檢測按鈕 -->
+                    <!-- 分開平假名與片假名兩個獨立手寫練習按鈕 -->
                     <div class="flex flex-col gap-1.5 w-full">
-                        <button onclick="openHandwritingModal('${item.h}', 'hiragana')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1.5 rounded-lg font-medium transition shadow">✍️ 平假名手寫檢測 (${item.h})</button>
-                        <button onclick="openHandwritingModal('${item.k}', 'katakana')" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white text-xs py-1.5 rounded-lg font-medium transition shadow">✍️ 片假名手寫檢測 (${item.k})</button>
+                        <button onclick="openHandwritingModal('${item.h}', 'hiragana')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-1.5 rounded-lg font-medium transition shadow">✍️ 平假名手寫練習 (${item.h})</button>
+                        <button onclick="openHandwritingModal('${item.k}', 'katakana')" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white text-xs py-1.5 rounded-lg font-medium transition shadow">✍️ 片假名手寫練習 (${item.k})</button>
                     </div>
                 `;
                 container.appendChild(card);
@@ -270,10 +267,9 @@
         }
 
         function openHandwritingModal(kana, type) {
-            currentWritingTarget = kana;
             document.getElementById('modal-target-kana').innerText = kana;
-            document.getElementById('modal-title').innerText = type === 'hiragana' ? '✍️ 平假名手寫辨識檢測' : '✍️ 片假名手寫辨識檢測';
-            document.getElementById('handwriting-status').innerText = '請在大正方形內書寫';
+            document.getElementById('modal-title').innerText = type === 'hiragana' ? '✍️ 平假名手寫臨摹練習' : '✍️ 片假名手寫臨摹練習';
+            document.getElementById('handwriting-status').innerText = '請在方格內隨意書寫練習筆順';
             document.getElementById('handwriting-status').className = 'text-sm font-semibold text-slate-600 mb-4 h-6';
             clearCanvas();
             document.getElementById('handwriting-modal').classList.remove('hidden');
@@ -293,111 +289,56 @@
                 const rect = canvas.getBoundingClientRect();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - rect.left, y: clientY - rect.top, t: Date.now() };
+                return { x: clientX - rect.left, y: clientY - rect.top };
             };
 
             canvas.addEventListener('mousedown', (e) => {
                 drawing = true;
-                currentStroke = [getPos(e)];
+                const pos = getPos(e);
                 ctx.beginPath();
-                ctx.moveTo(currentStroke[0].x, currentStroke[0].y);
+                ctx.moveTo(pos.x, pos.y);
             });
 
             canvas.addEventListener('mousemove', (e) => {
                 if (!drawing) return;
                 const pos = getPos(e);
-                currentStroke.push(pos);
                 ctx.lineTo(pos.x, pos.y);
                 ctx.stroke();
             });
 
-            canvas.addEventListener('mouseup', () => {
-                if (drawing) {
-                    drawing = false;
-                    allStrokes.push(currentStroke);
-                }
-            });
+            canvas.addEventListener('mouseup', () => { drawing = false; });
+            canvas.addEventListener('mouseleave', () => { drawing = false; });
 
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 drawing = true;
-                currentStroke = [getPos(e)];
+                const pos = getPos(e);
                 ctx.beginPath();
-                ctx.moveTo(currentStroke[0].x, currentStroke[0].y);
+                ctx.moveTo(pos.x, pos.y);
             });
 
             canvas.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 if (!drawing) return;
                 const pos = getPos(e);
-                currentStroke.push(pos);
                 ctx.lineTo(pos.x, pos.y);
                 ctx.stroke();
             });
 
             canvas.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                if (drawing) {
-                    drawing = false;
-                    allStrokes.push(currentStroke);
-                }
+                drawing = false;
             });
         }
 
         function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            allStrokes = [];
-            currentStroke = [];
         }
 
-        // 嚴格使用 Web Handwriting API 檢測，答對沒有獎勵
-        async function recognizeHandwriting() {
+        function finishHandwriting() {
             const statusEl = document.getElementById('handwriting-status');
-            
-            if (allStrokes.length === 0) {
-                statusEl.className = "text-sm font-semibold text-rose-500 mb-4 h-6";
-                statusEl.innerText = "請先在畫板上書寫！";
-                return;
-            }
-
-            try {
-                if ('navigator' in window && typeof navigator.createHandwritingRecognizer === 'function') {
-                    statusEl.className = "text-sm font-semibold text-indigo-600 mb-4 h-6";
-                    statusEl.innerText = "正在以 AI 檢測筆跡...";
-                    
-                    const recognizer = await navigator.createHandwritingRecognizer({ languages: ['ja'] });
-                    const drawingObj = {
-                        strokes: allStrokes.map(stroke => ({
-                            xs: stroke.map(p => p.x),
-                            ys: stroke.map(p => p.y),
-                            ts: stroke.map(p => p.t)
-                        }))
-                    };
-
-                    const prediction = await recognizer.startRecognition(drawingObj);
-                    const results = await prediction.getResult();
-                    
-                    if (results && results.length > 0) {
-                        const topMatch = results[0].text;
-                        if (topMatch.includes(currentWritingTarget)) {
-                            statusEl.className = "text-sm font-semibold text-emerald-600 mb-4 h-6";
-                            statusEl.innerText = `🎉 檢測通過！辨識結果為「${topMatch}」，書寫正確！（手寫練習無抽獎獎勵）`;
-                            return;
-                        } else {
-                            statusEl.className = "text-sm font-semibold text-rose-500 mb-4 h-6";
-                            statusEl.innerText = `❌ 辨識結果為「${topMatch}」，與目標不符，請重新書寫！`;
-                            return;
-                        }
-                    }
-                } else {
-                    statusEl.className = "text-sm font-semibold text-amber-600 mb-4 h-6";
-                    statusEl.innerText = "您的瀏覽器未啟用 Web Handwriting API 支援。";
-                }
-            } catch (err) {
-                console.error(err);
-                statusEl.className = "text-sm font-semibold text-rose-500 mb-4 h-6";
-                statusEl.innerText = "API 檢測發生錯誤，請重新書寫。";
-            }
+            statusEl.className = "text-sm font-semibold text-emerald-600 mb-4 h-6";
+            statusEl.innerText = "✨ 太棒了！筆順練習完成！（手寫練習無抽獎獎勵）";
         }
 
         function nextQuestion() {
@@ -452,7 +393,7 @@
                 }
                 setTimeout(nextQuestion, 1500);
             } else {
-                streakCount = 0; // 答錯重置連續次數
+                streakCount = 0;
                 document.getElementById('streak-count').innerText = streakCount;
                 feedback.className = "text-lg font-bold h-8 text-rose-500";
                 feedback.innerText = `❌ 答錯了！連續進度已重置，正確答案是: ${correct}`;
@@ -470,8 +411,6 @@
             document.getElementById('draw-tokens').innerText = drawTokens;
             document.getElementById('token-display').innerText = drawTokens;
 
-            // 定義稀有度權重 (數值越低越難抽中)
-            // R: 60%, SR: 25%, SSR: 11%, UR: 4%
             const weightedList = [];
             pokemonList.forEach(p => {
                 let weight = 1;
@@ -489,7 +428,7 @@
 
             if (!collectedPokemons.some(p => p.id === drawnPokemon.id)) {
                 collectedPokemons.push(drawnPokemon);
-                localStorage.setItem('collected_pokemons_v3', JSON.stringify(collectedPokemons));
+                localStorage.setItem('collected_pokemons_v4', JSON.stringify(collectedPokemons));
                 updateDexUI();
             }
 
